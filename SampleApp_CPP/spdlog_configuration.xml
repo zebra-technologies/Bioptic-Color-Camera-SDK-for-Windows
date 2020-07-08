@@ -1,0 +1,30 @@
+<log_configuration>
+  <!--There could be multiple sinks with different settings defined here. -->
+  <sinks>
+    <!-- rotating_file_sink_mt: When the max file size is reached, close the file, rename it, and create a new file. Both the max file size and the max number of files are configurable in the constructor.-->
+    <sink type="rotating_file_sink_mt" name="rotating_file_sink_mt">
+      <!-- Name of the Log file. -->
+      <property key="log_file_name" value="CameraSDKLog.log" />
+      <!-- This is where the log files will be saved. The path should be valid in order for CoreScanner to create the logs. CoreScanner will not create directories. -->
+      <property key="log_file_path" value="logs" />
+      <!-- Max file size in Kilo Bytes (considering 1KB = 1024B). Minimum size is 5KB and if any value less is defined, will be defaulted to the minimum value. -->
+      <property key="max_file_size" value="5120" />
+      <!-- Max file count. The minimum is 1 and anything less or invalid value will be defaulted to 1. -->
+      <property key="max_file_count" value="%" />
+      <!-- Pattern of the single log entry. Please refer https://github.com/gabime/spdlog/wiki/3.-Custom-formatting for more information. -->
+      <property key="log_pattern" value="[%H:%M:%S:%e] [T%t] [P%P] [%l] [%s] [%#] [%!] %v" />
+      <!-- Log level to be recorded.  2 = INFO, 3 = WARNING, 4 = ERROR, 5 = CRITICAL 6 = LOG_OFF, 0,1 = TRACE,DEBUG (Works only with debug build) -->
+      <property key="log_level" value="2" />
+    </sink>
+    <!-- Please uncomment (remove <?ignore ?> tag) following sink to enable debug logging. -->
+    <?ignore
+    <!-- msvc_sink: Windows debug sink (logging using OutputDebugStringA). -->
+    <sink type="msvc_sink_mt" name="msvc_sink_mt">
+      <!-- Pattern of the single log entry. Please refer https://github.com/gabime/spdlog/wiki/3.-Custom-formatting for more information. -->
+      <property key="log_pattern" value="[%H:%M:%S:%e] [T%t] [P%P] [%l] [%s] [%#] [%!] %v" />
+      <!-- Log level to be recorded.  2 = INFO, 3 = WARNING, 4 = ERROR, 5 = CRITICAL 6 = LOG_OFF, 0,1 = TRACE,DEBUG (Works only with debug build) -->
+      <property key="log_level" value="2" />
+    </sink>
+    ?>
+  </sinks>
+</log_configuration>
