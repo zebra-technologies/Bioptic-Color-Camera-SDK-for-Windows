@@ -69,6 +69,9 @@ namespace CameraSDKSampleApp
         const int DecodeSessionStart = 0;
         const int DecodeSessionEnd = 1;
 
+        const int StreamDiscontinued = 0;
+        const int StreamContinued = 1;
+
         // Bounding box detection background type settings
         const int backgroundStatic = 0;
         const int backgroundDynamic = 1;
@@ -85,6 +88,21 @@ namespace CameraSDKSampleApp
         const string deviceSleepResourceStreamPath = "CameraSDKSampleApp.Resources.deviceSleep.jpg";
 
         private int registeredImageEventCount = 0;
+
+        enum WeightUnits
+        {
+            kg = 48,
+            lb = 49,
+            other = 50
+        }
+
+        const string weightUnitKG = " kg";
+        const string weightUnitPounds = " lb";
+        const string weightUnitOther = "";
+        const string weightUnitsInvalid = " N/A";
+
+        const string STREAM_CONTINUED = "STREAM CONTINUED";
+        const string STREAM_DISCONTINUED = "STREAM DISCONTINUED";
 
         protected override void WndProc(ref Message msg)
         {
@@ -138,6 +156,7 @@ namespace CameraSDKSampleApp
                 camera.OnProduceImageEvent += Camera_OnProduceImageEvent;
                 camera.OnDecodeImageEvent += Camera_OnDecodeImageEvent;
                 camera.OnDecodeSessionStatusChangeEvent += Camera_OnDecodeSessionStatusChangeEvent;
+                camera.OnCameraStreamStatusChangeEvent += Camera_OnCameraStreamStatusChangeEvent;
 
                 Array deviceIDArray;
                 camera.EnumerateDevices(out deviceIDArray);
@@ -169,7 +188,7 @@ namespace CameraSDKSampleApp
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Error : " + ex + " \nLast Error: " + camera.LastError, errorMsgTitle);
+                HandleError(ex);
             }
         }
 
@@ -205,6 +224,13 @@ namespace CameraSDKSampleApp
                     });
                     break;
                 case 3:
+                    progressFWDownload.Invoke((MethodInvoker)delegate
+                    {
+                        btnLaunch.Enabled = true;
+                        btnCancelFWDownload.Enabled = false;
+                        btnFirmwareUpdate.Enabled = false;
+                        btnBrowse.Enabled = false;
+                    });
                     Log("Download end.");
                     break;
                 case 4:
@@ -282,6 +308,7 @@ namespace CameraSDKSampleApp
             try
             {
                 isOpened = true;
+                errorMsgTitle = "ERROR";
                 Log("Open()");
                 camera.Open(cboDevices.Text);
                 openedDeviceID = cboDevices.Text;
@@ -289,17 +316,19 @@ namespace CameraSDKSampleApp
                 btnClose.Enabled = true;
                 btnOpen.Enabled = false;
                 EnableDisableControls(true);
+                btnLaunch.Enabled = false;
                 GetDeviceInfo();
                 camera.RegisterForContinuousImageEvent(False);
                 camera.RegisterForSnapshotImageEvent(False);
                 camera.RegisterForProduceImageEvent(False);
                 camera.RegisterForFirmwareDownloadProgressEvents(True);
+                camera.RegisterForCameraStreamStatusChangeEvent(False);
             }
             catch (Exception ex)
             {
                 isOpened = false;
                 openedDeviceID = "";
-                MessageBox.Show("Error : " + ex + " \nLast Error: " + camera.LastError, errorMsgTitle);
+                HandleError(ex);
             }
 
         }
@@ -326,8 +355,123 @@ namespace CameraSDKSampleApp
             catch (Exception ex)
             {
                 openedDeviceID = "";
-                MessageBox.Show("Error : " + ex + " \nLast Error: " + camera.LastError, errorMsgTitle);
+                HandleError(ex);
+
             }
+        }
+
+        private void HandleError(Exception ex = null)
+        {
+            String lastError = GetCameraLastError();
+
+            //0x800706BA referrs to the RPC server unavailable error 
+            if (lastError.Contains("0x800706BA") || ex == null)
+            {
+                string message = "COM Wrapper is closed. Click 'OK' to relaunch and 'Cancel' to exit.";
+                MessageBoxButtons buttons = MessageBoxButtons.OKCancel;
+                DialogResult result = MessageBox.Show(message, errorMsgTitle, buttons, MessageBoxIcon.Error);
+                if (result == DialogResult.OK)
+                {
+                    if (RestartCOMWrapper())
+                    {
+
+                        Log("COM Wrapper restarted successfully.");
+                    }
+                    else
+                        MessageBox.Show("COM Wrapper relaunching failed. Please restart the application and try again", errorMsgTitle);
+                }
+                else
+                {
+                    this.Close();
+                }
+            }
+            else
+            {
+                MessageBox.Show("Error : " + ex + Environment.NewLine + "Last Error: " + lastError, errorMsgTitle);
+            }
+        }
+
+        private String GetCameraLastError()
+        {
+            try
+            {
+                return camera.LastError;
+            }
+            catch (COMException ex)
+            {
+                return ex.ToString();
+            }
+        }
+
+        private bool RestartCOMWrapper()
+        {
+            try
+            {
+                if (camera != null)
+                {
+                    camera.OnContinuousImageEvent -= Camera_ContinuousImageEvent;
+                    camera.OnSnapshotImageEvent -= Camera_OnSnapshotImageEvent;
+                    camera.OnProduceImageEvent -= Camera_OnProduceImageEvent;
+                    camera.OnDecodeImageEvent -= Camera_OnDecodeImageEvent;
+                    camera.OnDecodeSessionStatusChangeEvent -= Camera_OnDecodeSessionStatusChangeEvent;
+                    camera.OnDeviceAddedEvent -= Camera_OnDeviceAddedEvent;
+                    camera.OnDeviceRemovedEvent -= Camera_OnDeviceRemovedEvent;
+                    camera.OnFirmwareDownloadProgressEvent -= Camera_OnFirmwareDownloadProgressEvent;
+                    camera.OnCameraStreamStatusChangeEvent -= Camera_OnCameraStreamStatusChangeEvent;
+                }
+
+                camera = new Camera();
+                camera.OnContinuousImageEvent += Camera_ContinuousImageEvent;
+                camera.OnSnapshotImageEvent += Camera_OnSnapshotImageEvent;
+                camera.OnProduceImageEvent += Camera_OnProduceImageEvent;
+                camera.OnDecodeImageEvent += Camera_OnDecodeImageEvent;
+                camera.OnDecodeSessionStatusChangeEvent += Camera_OnDecodeSessionStatusChangeEvent;
+                camera.OnCameraStreamStatusChangeEvent += Camera_OnCameraStreamStatusChangeEvent;
+
+                camera.OnDeviceAddedEvent += Camera_OnDeviceAddedEvent;
+                camera.OnDeviceRemovedEvent += Camera_OnDeviceRemovedEvent;
+
+                camera.OnFirmwareDownloadProgressEvent += Camera_OnFirmwareDownloadProgressEvent;
+
+                UpdateDeviceDiscoveryUI();
+
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        private void UpdateDeviceDiscoveryUI()
+        {
+            Array deviceIDArray;
+            deviceList.Clear();
+            camera.EnumerateDevices(out deviceIDArray);
+            if (deviceIDArray.Length > 0)
+            {
+                for (int i = 0; i < deviceIDArray.Length; i++)
+                {
+                    deviceList.Add((string)deviceIDArray.GetValue(i));
+                }
+                UpdateDeviceListUI();
+                btnOpen.Enabled = true;
+                btnClose.Enabled = false;
+                EnableDisableControls(false);
+            }
+
+            UpdateDeviceImages();
+        }
+
+        private void UpdateDeviceImages()
+        {
+            Assembly assembly = Assembly.GetExecutingAssembly();
+
+            Stream resourceStream = assembly.GetManifestResourceStream(deviceAwakeResourceStreamPath);
+            deviceAwakeImage = new Bitmap(resourceStream);
+
+            resourceStream = assembly.GetManifestResourceStream(deviceSleepResourceStreamPath);
+            deviceSleepImage = new Bitmap(resourceStream);
         }
 
         private void UpdateDeviceListUI()
@@ -366,9 +510,9 @@ namespace CameraSDKSampleApp
             imageBuffer = null;
         }
 
-        private void Camera_OnProduceImageEvent(ref object imageBuffer, int length, int width, int height, int imageType)
+        private void Camera_OnProduceImageEvent(ref object imageBuffer, int length, int width, int height, int imageType, int weightData, int weightUnit)
         {
-            Camera_OnImageEvent(ref produceImage, imageBuffer, length, width, height, imageType, "Produce Image");
+            Camera_OnImageEvent(ref produceImage, imageBuffer, length, width, height, imageType, "Produce Image", weightData: weightData, weightUnit: weightUnit);
             imageBuffer = null;
         }
 
@@ -394,7 +538,26 @@ namespace CameraSDKSampleApp
             });
         }
 
-        private void Camera_OnImageEvent(ref byte[] gImage, object imageBuffer, int length, int width, int height, int imageType, string eventType, string decodeData = "")
+        private void Camera_OnCameraStreamStatusChangeEvent(int session_status)
+        {
+
+            curForm.Invoke((MethodInvoker)delegate
+            {
+                switch (session_status)
+                {
+                    case StreamDiscontinued:
+                        txtCameraStream.Text = STREAM_DISCONTINUED;
+                        break;
+                    case StreamContinued:
+                        txtCameraStream.Text = STREAM_CONTINUED;
+                        break;
+                    default:
+                        break;
+                }
+            });
+        }
+
+        private void Camera_OnImageEvent(ref byte[] gImage, object imageBuffer, int length, int width, int height, int imageType, string eventType, string decodeData = "", int weightData= 0, int weightUnit = 0)
         {
             try
             {
@@ -483,9 +646,37 @@ namespace CameraSDKSampleApp
                         }
                     }
                     txtDecodeData.Text = decodeDataSB.ToString();
+
+                    if (weightUnit != 0)
+                    {
+                        StringBuilder weightDataSB = new StringBuilder();
+                        weightDataSB.Append((weightData/1000.0));
+                        //Adding new weight units
+                        switch(weightUnit)
+                        {
+                            case (int)WeightUnits.kg:
+                                weightDataSB.Append(weightUnitKG);
+                                break;
+                            case (int)WeightUnits.lb:
+                                weightDataSB.Append(weightUnitPounds);
+                                break;
+                            case (int)WeightUnits.other:
+                                weightDataSB.Append(weightUnitOther);
+                                break;
+                            default:
+                                weightDataSB.Append(weightUnitsInvalid);
+                                break;
+                        }
+
+                        txtWeightData.Text = weightDataSB.ToString();
+                    }
+                    else
+                        txtWeightData.Text = "";
+
                     if (autoSave)
                     {
-                        SaveImage(msImage, decodeDataSB.ToString());
+                        string decodeDataNoInvalidChars = string.Join("_", decodeDataSB.ToString().Split(Path.GetInvalidFileNameChars()));
+                        SaveImage(msImage, decodeDataNoInvalidChars);
                     }
                 });
             }
@@ -656,7 +847,7 @@ namespace CameraSDKSampleApp
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Error : " + ex + " \nLast Error: " + camera.LastError, errorMsgTitle);
+                HandleError(ex);
                  
             }
         }
@@ -679,7 +870,7 @@ namespace CameraSDKSampleApp
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Error : " + ex + " \nLast Error: " + camera.LastError, errorMsgTitle);
+                HandleError(ex);
                  
             }
         }
@@ -702,7 +893,7 @@ namespace CameraSDKSampleApp
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Error : " + ex + " \nLast Error: " + camera.LastError, errorMsgTitle);
+                HandleError(ex);
                  
             }
 
@@ -726,7 +917,7 @@ namespace CameraSDKSampleApp
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Error : " + ex + " \nLast Error: " + camera.LastError, errorMsgTitle);
+                HandleError(ex);
             }
 
         }
@@ -749,7 +940,7 @@ namespace CameraSDKSampleApp
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Error : " + ex + " \nLast Error: " + camera.LastError, errorMsgTitle);
+                HandleError(ex);
             }
 
         }
@@ -827,7 +1018,7 @@ namespace CameraSDKSampleApp
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Error : " + ex + " \nLast Error: " + camera.LastError, errorMsgTitle);
+                HandleError(ex);
             }
         }
 
@@ -849,7 +1040,7 @@ namespace CameraSDKSampleApp
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Error : " + ex + " \nLast Error: " + camera.LastError, errorMsgTitle);
+                HandleError(ex);
             }
 
         }
@@ -871,7 +1062,7 @@ namespace CameraSDKSampleApp
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Error : " + ex + " \nLast Error: " + camera.LastError, errorMsgTitle);
+                HandleError(ex);
             }
 
         }
@@ -894,7 +1085,7 @@ namespace CameraSDKSampleApp
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Error : " + ex + " \nLast Error: " + camera.LastError, errorMsgTitle);
+                HandleError(ex);
             }
 
         }
@@ -917,7 +1108,7 @@ namespace CameraSDKSampleApp
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Error : " + ex + " \nLast Error: " + camera.LastError, errorMsgTitle);
+                HandleError(ex);
             }
 
         }
@@ -1007,7 +1198,7 @@ namespace CameraSDKSampleApp
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Error : " + ex + " \nLast Error: " + camera.LastError, errorMsgTitle);
+                HandleError(ex);
             }
 
 
@@ -1054,7 +1245,7 @@ namespace CameraSDKSampleApp
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Error : " + ex + " \nLast Error: " + camera.LastError, errorMsgTitle);
+                HandleError(ex);
             }
 
         }
@@ -1063,12 +1254,14 @@ namespace CameraSDKSampleApp
         {
             try
             {
+                btnReboot.Enabled = false;
                 camera.RebootCamera(10);
                 Log("RebootCamera()");
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Error : " + ex + " \nLast Error: " + camera.LastError, errorMsgTitle);
+                btnReboot.Enabled = true;
+                HandleError(ex);
             }
 
         }
@@ -1094,7 +1287,7 @@ namespace CameraSDKSampleApp
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Error : " + ex + " \nLast Error: " + camera.LastError, errorMsgTitle);
+                HandleError(ex);
             }
 
         }
@@ -1120,7 +1313,7 @@ namespace CameraSDKSampleApp
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Error : " + ex + " \nLast Error: " + camera.LastError, errorMsgTitle);
+                HandleError(ex);
             }
 
         }
@@ -1146,7 +1339,7 @@ namespace CameraSDKSampleApp
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Error : " + ex + " \nLast Error: " + camera.LastError, errorMsgTitle);
+                HandleError(ex);
             }
 
         }
@@ -1172,7 +1365,7 @@ namespace CameraSDKSampleApp
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Error : " + ex + " \nLast Error: " + camera.LastError, errorMsgTitle);
+                HandleError(ex);
             }
 
         }
@@ -1200,7 +1393,33 @@ namespace CameraSDKSampleApp
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Error : " + ex + " \nLast Error: " + camera.LastError, errorMsgTitle);
+                HandleError(ex);
+            }
+        }
+
+        private void checkBox1chkCameraStreamStatusEvent_CheckedChanged(object sender, EventArgs e)
+        {
+            try
+            {
+                if (isOpened)
+                {
+                    if (chkCameraStreamStatusEvent.Checked)
+                    {
+                        camera.RegisterForCameraStreamStatusChangeEvent(True);
+                        registeredImageEventCount++;
+                    }
+                    else
+                    {
+                        camera.RegisterForCameraStreamStatusChangeEvent(False);
+                        registeredImageEventCount--;
+                    }
+                }
+                txtCameraStream.Text = "";
+                ChangeResolutionCBEnableState();
+            }
+            catch (Exception ex)
+            {
+                HandleError(ex);
             }
         }
 
@@ -1214,7 +1433,7 @@ namespace CameraSDKSampleApp
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Error : " + ex + " \nLast Error: " + camera.LastError, errorMsgTitle);
+                HandleError(ex);
             }
 
         }
@@ -1229,7 +1448,7 @@ namespace CameraSDKSampleApp
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Error : " + ex + " \nLast Error: " + camera.LastError, errorMsgTitle);
+                HandleError(ex);
             }
 
         }
@@ -1244,7 +1463,7 @@ namespace CameraSDKSampleApp
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Error : " + ex + " \nLast Error: " + camera.LastError, errorMsgTitle);
+                HandleError(ex);
             }
 
         }
@@ -1316,7 +1535,7 @@ namespace CameraSDKSampleApp
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Error : " + ex + " \nLast Error: " + camera.LastError, errorMsgTitle);
+                HandleError(ex);
             }
 
         }
@@ -1330,7 +1549,7 @@ namespace CameraSDKSampleApp
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Error : " + ex + " \nLast Error: " + camera.LastError, errorMsgTitle);
+                HandleError(ex);
             }
 
         }
@@ -1344,7 +1563,7 @@ namespace CameraSDKSampleApp
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Error : " + ex + " \nLast Error: " + camera.LastError, errorMsgTitle);
+                HandleError(ex);
             }
         }
 
@@ -1357,7 +1576,7 @@ namespace CameraSDKSampleApp
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Error : " + ex + " \nLast Error: " + camera.LastError, errorMsgTitle);
+                HandleError(ex);
             }
 
         }
@@ -1373,7 +1592,7 @@ namespace CameraSDKSampleApp
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Error : " + ex + " \nLast Error: " + camera.LastError, errorMsgTitle);
+                HandleError(ex);
             }
 
         }
@@ -1387,7 +1606,7 @@ namespace CameraSDKSampleApp
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Error : " + ex + " \nLast Error: " + camera.LastError, errorMsgTitle);
+                HandleError(ex);
             }
 
         }
@@ -1401,7 +1620,7 @@ namespace CameraSDKSampleApp
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Error : " + ex + " \nLast Error: " + camera.LastError, errorMsgTitle);
+                HandleError(ex);
             }
 
         }
@@ -1416,7 +1635,7 @@ namespace CameraSDKSampleApp
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Error : " + ex + " \nLast Error: " + camera.LastError, errorMsgTitle);
+                HandleError(ex);
             }
 
 
@@ -1442,7 +1661,7 @@ namespace CameraSDKSampleApp
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Error : " + ex + " \nLast Error: " + camera.LastError, errorMsgTitle);
+                HandleError(ex);
             }
 
         }
@@ -1460,7 +1679,7 @@ namespace CameraSDKSampleApp
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Error : " + ex + " \nLast Error: " + camera.LastError, errorMsgTitle);
+                HandleError(ex);
             }
         }
 
@@ -1484,7 +1703,7 @@ namespace CameraSDKSampleApp
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Error : " + ex + " \nLast Error: " + camera.LastError, errorMsgTitle);
+                HandleError(ex);
             }
         }
 
@@ -1523,6 +1742,8 @@ namespace CameraSDKSampleApp
             chkDecodeImageEvent.CheckState = CheckState.Unchecked;
             chkDecodeSessionStatusEvent.Enabled = isEnabled;
             chkDecodeSessionStatusEvent.CheckState = CheckState.Unchecked;
+            chkCameraStreamStatusEvent.Enabled = isEnabled;
+            chkCameraStreamStatusEvent.CheckState = CheckState.Unchecked;
 
             chkAutoSave.Enabled = isEnabled;
             chkAutoSave.CheckState = CheckState.Unchecked;
@@ -1559,6 +1780,7 @@ namespace CameraSDKSampleApp
             txtImageSize.Enabled = isEnabled;
             txtTimestamp.Enabled = isEnabled;
             txtDecodeData.Enabled = isEnabled;
+            txtWeightData.Enabled = isEnabled;
 
             btnLoadConfig.Enabled = isEnabled;
             btnRetieveConfig.Enabled = isEnabled;
@@ -1580,7 +1802,7 @@ namespace CameraSDKSampleApp
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Error : " + ex + " \nLast Error: " + camera.LastError, errorMsgTitle);
+                HandleError(ex);
             }
 
         }
@@ -1627,7 +1849,7 @@ namespace CameraSDKSampleApp
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Error : " + ex + " \nLast Error: " + camera.LastError, errorMsgTitle);
+                HandleError(ex);
             }
             finally
             {
@@ -1657,7 +1879,7 @@ namespace CameraSDKSampleApp
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Error : " + ex + " \nLast Error: " + camera.LastError, errorMsgTitle);
+                HandleError(ex);
             }
         }
 
@@ -1671,13 +1893,18 @@ namespace CameraSDKSampleApp
 
         private void btnFirmwareUpdate_Click(object sender, EventArgs e)
         {
+            if (txtFwFile.Text == "")
+            {
+                MessageBox.Show("Error : Invalid Path", errorMsgTitle);
+                return;
+            }
             try
             {
                 camera.DownloadFirmware(txtFwFile.Text);
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Error : " + ex + " \nLast Error: " + camera.LastError, errorMsgTitle);
+                HandleError(ex);
 
             }
         }
@@ -1696,7 +1923,7 @@ namespace CameraSDKSampleApp
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Error : " + ex + " \nLast Error: " + camera.LastError, errorMsgTitle);
+                HandleError(ex);
             }
         }
 
@@ -1704,11 +1931,13 @@ namespace CameraSDKSampleApp
         {
             try
             {
+                btnLaunch.Enabled = false;
                 camera.InstallFirmware();
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Error : " + ex + " \nLast Error: " + camera.LastError, errorMsgTitle);
+                btnLaunch.Enabled = true;
+                HandleError(ex);
             }
         }
 
@@ -1791,6 +2020,13 @@ namespace CameraSDKSampleApp
             FrameTypeComboItem ftci = (FrameTypeComboItem)(sender as ComboBox).SelectedItem;
             FrameTypeInfo fti = ftci.FrameTypeInfo;
             camera.SetFrameType(ref fti);
+
+            //clear detect background mode's reference image
+            saveBackground = true;
+            if (detectBoundingBox)
+            {
+                MessageBox.Show("Video profile changed. Reset Background and enable Bounding Box detection if Bounding Box feature is required.");
+            }
         }
 
         private void cboDevices_SelectionChangeCommitted(object sender, EventArgs e)
@@ -1810,7 +2046,7 @@ namespace CameraSDKSampleApp
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Error : " + ex + " \nLast Error: " + camera.LastError, errorMsgTitle);
+                HandleError(ex);
             }
         }
 
@@ -1862,9 +2098,13 @@ namespace CameraSDKSampleApp
                     MessageBox.Show(message, "Load configuration");
                 }
             }
+            catch (COMException)
+            {
+                HandleError();
+            }
             catch (Exception ex)
             {
-                MessageBox.Show("Load configuration Failed. Error : " + ex.Message + " \nLast Error: " + camera.LastError, errorMsgTitle);
+                MessageBox.Show("Load configuration Failed. Error : " + ex.Message + Environment.NewLine + "Last Error: " + GetCameraLastError(), errorMsgTitle);
             }
         }
 
@@ -1892,9 +2132,13 @@ namespace CameraSDKSampleApp
                     MessageBox.Show(message, "Retrieve configuration");
                 }
             }
+            catch (COMException)
+            {
+                HandleError();
+            }
             catch (Exception ex)
             {
-                MessageBox.Show("Retrieve configuration Failed. Error : " + ex.Message + " \nLast Error: " + camera.LastError, errorMsgTitle);
+                MessageBox.Show("Retrieve configuration Failed. Error : " + ex.Message + Environment.NewLine + "Last Error: " + GetCameraLastError(), errorMsgTitle);
             }
         }
 

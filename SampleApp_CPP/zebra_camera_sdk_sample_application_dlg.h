@@ -220,6 +220,9 @@ class DecodeImageEventHandler;
 // Class to handle decode session status change events
 class DecodeSessionStatusChangeEventHandler;
 
+// Class to handle Camera Issue Events
+class CameraStreamStatusChangeEventHandler;
+
 // class to Handle Firmware download Events
 class FirmwareDownloadEventHandler;
 
@@ -278,6 +281,7 @@ private:
 	ProduceImageEventHandler* produce_image_event_handler_ = nullptr;
 	DecodeImageEventHandler* decode_image_event_handler_ = nullptr;
 	DecodeSessionStatusChangeEventHandler* decode_session_status_change_event_handler_ = nullptr;
+	CameraStreamStatusChangeEventHandler* camera_stream_status_change_event_handler_ = nullptr;
 	FirmwareDownloadEventHandler* firmware_download_event_handler_ = nullptr;
 
 	ZebraCameraManager camera_manager_;
@@ -434,12 +438,16 @@ private:
 	CBitmap m_device_awake_bmp_;
 	CBitmap m_device_sleep_bmp_;
 	CBitmap m_device_awake_status_bmp_;
+	BOOL m_check_detect_bounding_box_state_;
+	CButton m_check_error_event_;
+	BOOL m_check_error_event_value_;
 
 	friend class ContinuousImageEventHandler;
 	friend class SnapshotImageEventHandler;
 	friend class ProduceImageEventHandler;
 	friend class DecodeImageEventHandler;
 	friend class DecodeSessionStatusChangeEventHandler;
+	friend class CameraStreamStatusChangeEventHandler;
 	friend class FirmwareDownloadEventHandler;
 
 	afx_msg void OnBnClickedButtonWriteToFlash();
@@ -466,6 +474,7 @@ private:
 	afx_msg void OnBnClickedCheckProduceImageEvent();
 	afx_msg void OnBnClickedCheckDecodeImageEvent();
 	afx_msg void OnBnClickedCheckDecodeSessionStatusChangeEvent();
+	afx_msg void OnBnClickedCheckErrorSessionStatusEvent();
 	afx_msg void OnClose();
 	afx_msg void OnBnClickedCheckWhitebalancetempAuto();
 	afx_msg void OnCbnSelchangeComboIlluminationMode();
@@ -501,21 +510,29 @@ private:
 	void ShowPropertyException(CString property_name, const std::exception& e);
 	CString GetFileName(std::string temp_decode_data);
 	void SetDeviceAwakeStatusImage(DecodeSessionStatus status);
+	void UpdateCameraStreamStatusChanged(CameraStreamStatus status);
 	void LogCameraAssetInfo(std::shared_ptr< ZebraCamera> camera_);
-	void ShowImage(std::vector<uint8_t>& image, std::string decode_data, uint32_t width, uint32_t height, size_t size);
+	void ShowImage(std::vector<uint8_t>& image, std::string decode_data, std::string weight, uint32_t width, uint32_t height, size_t size);
 	void SaveImage(std::vector<uint8_t>* imageBuffer, CString file_name);
 	void ExecuteRebootProcedures();
 	void ChangeResolutionsCbEnableState();
-	void HandleImage(ImageData& evdat, ImageFormat& format, std::string decode_data = "");
+	void HandleImage(ImageData& evdat, ImageFormat& format, std::string decode_data = "", std::string weight = "");
 	zebra::image::FileConverter GetFileConverter(ImageFormat& format);
 	void EventLog(const char * eventDescription);
 	void EventLog(const char * eventDescription, int value);
+
+	BOOL CheckDetectBoundingBoxEnableState();
 public:
 	BOOL m_detect_bounding_box_;
 	afx_msg void OnBnClickedCheckDetectBoundingBox();
 	afx_msg void OnBnClickedButtonSetBackground();
 	CButton m_check_detect_bounding_box_;
 	CButton m_button_set_background_;
+	// This holds the weight data value from the produe image event
+	CEdit m_edit_weight_data;
+	CString m_edit_weight_data_value;
+	CEdit m_edit_camera_stream;
+	CString m_edit_camera_stream_value;
 };
 
 //class to handle slider controls
@@ -613,6 +630,17 @@ class DecodeSessionStatusChangeEventHandler :public DecodeSessionStatusChangeEve
 public:
 	DecodeSessionStatusChangeEventHandler(CZebraCameraSDKSampleApplicationDlg* dlg) :m_pDlg_(dlg) {}
 	void DecodeSessionStatusChanged(DecodeSessionStatus status) override;
+
+private:
+	CZebraCameraSDKSampleApplicationDlg* m_pDlg_;
+};
+
+// Class to handle Camera Issue Events
+class CameraStreamStatusChangeEventHandler : public CameraStreamStatusChangeEventListener
+{
+public:
+	CameraStreamStatusChangeEventHandler(CZebraCameraSDKSampleApplicationDlg* dlg) :m_pDlg_(dlg) {}
+	void CameraStreamStatusChanged(CameraStreamStatus status) override;
 
 private:
 	CZebraCameraSDKSampleApplicationDlg* m_pDlg_;

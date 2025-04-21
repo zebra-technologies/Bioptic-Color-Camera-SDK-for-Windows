@@ -46,21 +46,21 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
     <UseOfMfc>Dynamic</UseOfMfc>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DevDebug|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
     <UseOfMfc>Dynamic</UseOfMfc>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
     <UseOfMfc>Dynamic</UseOfMfc>
@@ -68,7 +68,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DevRelease|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
     <UseOfMfc>Dynamic</UseOfMfc>
@@ -76,21 +76,21 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
     <UseOfMfc>Dynamic</UseOfMfc>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DevDebug|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
     <UseOfMfc>Dynamic</UseOfMfc>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
     <UseOfMfc>Dynamic</UseOfMfc>
@@ -98,7 +98,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DevRelease|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
     <UseOfMfc>Dynamic</UseOfMfc>
@@ -236,7 +236,7 @@
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
-      <AdditionalLibraryDirectories>$(SolutionDir)..\..\..\..\out\build\$(PlatformShortName)-Debug\lib</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)..\..\..\..\SCMRelease\$(PlatformShortName)-Debug\lib</AdditionalLibraryDirectories>
       <AdditionalDependencies>camera_imaging.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
@@ -256,7 +256,7 @@
       </Command>
     </PostBuildEvent>
     <PreBuildEvent>
-      <Command>copy /Y "$(SolutionDir)..\..\..\..\out\build\$(PlatformShortName)-Debug\bin\*.dll" "$(TargetDir)"
+      <Command>copy /Y "$(SolutionDir)..\..\..\..\SCMRelease\$(PlatformShortName)-Debug\bin\*.dll" "$(TargetDir)"
 copy /Y "$(SolutionDir)..\..\..\..\3rd_party\opencv\build\windows\$(PlatformShortName)-Debug\bin\*.dll" "$(TargetDir)"</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
@@ -308,7 +308,7 @@ copy /Y "$(SolutionDir)..\..\..\..\3rd_party\opencv\build\windows\$(PlatformShor
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
-      <AdditionalLibraryDirectories>$(SolutionDir)..\..\..\..\out\build\$(PlatformShortName)-Debug\lib</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)..\..\..\..\SCMRelease\$(PlatformShortName)-Debug\lib</AdditionalLibraryDirectories>
       <AdditionalDependencies>camera_imaging.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
@@ -327,7 +327,7 @@ copy /Y "$(SolutionDir)..\..\..\..\3rd_party\opencv\build\windows\$(PlatformShor
       </Command>
     </PostBuildEvent>
     <PreBuildEvent>
-      <Command>copy /Y "$(SolutionDir)..\..\..\..\out\build\$(PlatformShortName)-Debug\bin\*.dll" "$(TargetDir)"
+      <Command>copy /Y "$(SolutionDir)..\..\..\..\SCMRelease\$(PlatformShortName)-Debug\bin\*.dll" "$(TargetDir)"
 copy /Y "$(SolutionDir)..\..\..\..\3rd_party\opencv\build\windows\$(PlatformShortName)-Debug\bin\*.dll" "$(TargetDir)"</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
@@ -383,7 +383,7 @@ copy /Y "$(SolutionDir)..\..\..\..\3rd_party\opencv\build\windows\$(PlatformShor
       <SubSystem>Windows</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalLibraryDirectories>$(SolutionDir)..\..\..\..\out\build\$(PlatformShortName)-Release\lib</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)..\..\..\..\SCMRelease\$(PlatformShortName)-Release\lib</AdditionalLibraryDirectories>
       <AdditionalDependencies>camera_imaging.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <GenerateDebugInformation>false</GenerateDebugInformation>
     </Link>
@@ -398,11 +398,10 @@ copy /Y "$(SolutionDir)..\..\..\..\3rd_party\opencv\build\windows\$(PlatformShor
       <AdditionalIncludeDirectories>$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <PostBuildEvent>
-      <Command>
-      </Command>
+      <Command>copy /Y "$(TargetDir)$(TargetFileName)" "$(SolutionDir)..\..\..\..\SCMRelease\$(PlatformShortName)-Release\bin\"</Command>
     </PostBuildEvent>
     <PreBuildEvent>
-      <Command>copy /Y "$(SolutionDir)..\..\..\..\out\build\$(PlatformShortName)-Release\bin\*.dll" "$(TargetDir)"
+      <Command>copy /Y "$(SolutionDir)..\..\..\..\SCMRelease\$(PlatformShortName)-Release\bin\*.dll" "$(TargetDir)"
 copy /Y "$(SolutionDir)..\..\..\..\3rd_party\opencv\build\windows\x86-Release\bin\*.dll" "$(TargetDir)"</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
@@ -441,7 +440,8 @@ copy /Y "$(SolutionDir)..\..\..\..\3rd_party\opencv\build\windows\x86-Release\bi
       </Command>
     </PostBuildEvent>
     <PreBuildEvent>
-      <Command>copy /Y "$(SolutionDir)..\..\..\SDK\$(Configuration)\bin\$(PlatformShortName)\*.dll" "$(TargetDir)"</Command>
+      <Command>copy /Y "$(SolutionDir)..\..\..\SDK\$(Configuration)\bin\$(PlatformShortName)\*.dll" "$(TargetDir)"
+      </Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='DevRelease|x64'">
@@ -460,7 +460,7 @@ copy /Y "$(SolutionDir)..\..\..\..\3rd_party\opencv\build\windows\x86-Release\bi
       <SubSystem>Windows</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalLibraryDirectories>$(SolutionDir)..\..\..\..\out\build\$(PlatformShortName)-Release\lib</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)..\..\..\..\SCMRelease\$(PlatformShortName)-Release\lib</AdditionalLibraryDirectories>
       <AdditionalDependencies>camera_imaging.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <GenerateDebugInformation>false</GenerateDebugInformation>
     </Link>
@@ -479,7 +479,7 @@ copy /Y "$(SolutionDir)..\..\..\..\3rd_party\opencv\build\windows\x86-Release\bi
       </Command>
     </PostBuildEvent>
     <PreBuildEvent>
-      <Command>copy /Y "$(SolutionDir)..\..\..\..\out\build\$(PlatformShortName)-Release\bin\*.dll" "$(TargetDir)"
+      <Command>copy /Y "$(SolutionDir)..\..\..\..\SCMRelease\$(PlatformShortName)-Release\bin\*.dll" "$(TargetDir)"
 copy /Y "$(SolutionDir)..\..\..\..\3rd_party\opencv\build\windows\$(PlatformShortName)-Release\bin\*.dll" "$(TargetDir)"</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>

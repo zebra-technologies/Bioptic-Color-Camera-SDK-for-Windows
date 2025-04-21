@@ -171,12 +171,12 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
-    <PreBuildEvent>copy /Y $(SolutionDir)..\..\..\out\build\x86-Debug\bin\image_proc.dll $(TargetDir)"
+    <PreBuildEvent>copy /Y $(SolutionDir)..\..\..\SCMRelease\x86-Debug\bin\image_proc.dll $(TargetDir)"
 copy /Y $(SolutionDir)..\..\..\3rd_party\opencv\build\windows\x86-Debug\bin\*.dll $(TargetDir)"
 </PreBuildEvent>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
-    <PreBuildEvent>copy /Y $(SolutionDir)..\..\..\out\build\x86-Release\bin\image_proc.dll $(TargetDir)"
+    <PreBuildEvent>copy /Y $(SolutionDir)..\..\..\SCMRelease\x86-Release\bin\image_proc.dll $(TargetDir)"
 copy /Y $(SolutionDir)..\..\..\3rd_party\opencv\build\windows\x86-Release\bin\*.dll $(TargetDir)"
 </PreBuildEvent>
   </PropertyGroup>
@@ -186,13 +186,13 @@ IF $(ConfigurationName)==Debug goto debug_build
 IF $(ConfigurationName)==DevRelease goto dev_release_build
 
 echo dev_build
-copy /Y $(SolutionDir)..\..\..\out\build\x86-Debug\bin\image_proc.dll $(TargetDir)"
+copy /Y $(SolutionDir)..\..\..\SCMRelease\x86-Debug\bin\image_proc.dll $(TargetDir)"
 copy /Y $(SolutionDir)..\..\..\3rd_party\opencv\build\windows\x86-Debug\bin\*.dll $(TargetDir)"
 goto end
 
 :dev_release_build
 echo dev_release_build
-copy /Y $(SolutionDir)..\..\..\out\build\x86-Release\bin\image_proc.dll $(TargetDir)"
+copy /Y $(SolutionDir)..\..\..\SCMRelease\x86-Release\bin\image_proc.dll $(TargetDir)"
 copy /Y $(SolutionDir)..\..\..\3rd_party\opencv\build\windows\x86-Release\bin\*.dll $(TargetDir)"
 goto end
 
@@ -208,5 +208,19 @@ goto end
 
 :end
 echo reached_to_end</PreBuildEvent>
+  </PropertyGroup>
+  <PropertyGroup>
+    <PostBuildEvent>IF $(ConfigurationName)==DevRelease goto dev_release_post_build
+goto end
+
+:dev_release_post_build
+echo dev_release_post_build
+copy /Y "$(TargetDir)$(TargetFileName)" "$(SolutionDir)..\..\..\SCMRelease\$(PlatformName)-Release\bin"
+copy /Y "$(TargetDir)$(TargetFileName).config" "$(SolutionDir)..\..\..\SCMRelease\$(PlatformName)-Release\bin"
+copy /Y "$(SolutionDir)..\..\..\3rd_party\opencv\build\windows\x86-Release\bin\*.dll" "$(SolutionDir)..\..\..\SCMRelease\$(PlatformName)-Release\bin"
+goto end
+
+:end
+echo reached_to_post_build_end</PostBuildEvent>
   </PropertyGroup>
 </Project>

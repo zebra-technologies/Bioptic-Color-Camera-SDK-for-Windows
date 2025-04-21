@@ -78,10 +78,12 @@ END_MESSAGE_MAP()
 #define STR_NOT_APPLICABLE "N/A"
 #define INVALID_INDEX -1
 #define STR_ERROR _T("Error")
+#define STR_WARNING _T("Warning")
 #define STR_ERROR_MSG_SAVE_LOCATION_NOT_SET _T("Please set the save location")
 #define STR_ERROR_MSG_INVALID_SAVE_LOCATION _T("Invalid folder location")
 #define STR_ERROR_MSG_IMAGE_EVENTS_NOT_ENABLED _T("Image events not enabled")
 #define STR_ERROR_MSG_INVALID_FIRMWARE_FILE _T("Invalid firmware file")
+#define STR_WARNING_MSG_RES_CHANGE _T("Video profile changed. Reset Background and enable Bounding Box detection if Bounding Box feature is required.")
 #define STR_DIALOG_TITLE_SELECT_IMAGE_SAVE_FOLDER _T("Please select a folder for storing Images :")
 #define STR_DIALOG_TITLE_SELECT_FIRMWARE_FILE _T("Select a firmware file")
 #define STR_DIALOG_TITLE_LOAD_CONFIGURATION "Load configuration"
@@ -106,6 +108,15 @@ END_MESSAGE_MAP()
 #define DELAY_BEFORE_ACCESS_EXTENSION_PROPERTIES 250
 #define CAMERA_AWAKE 1
 #define CAMERA_ASLEEP 0
+#define WEIGHT_UNIT_KG_DECIMAL _T('0')
+#define WEIGHT_UNIT_POUNDS_DECIMAL _T('1')
+#define WEIGHT_UNIT_OTHER_DECIMAL _T('2')
+#define WEIGHT_UNIT_KG_TEXT _T("kg")
+#define WEIGHT_UNIT_POUNDS_TEXT _T("lb")
+#define WEIGHT_UNIT_OTHER_TEXT _T("")
+#define WEIGHT_UNIT_INVALID_TEXT _T(" N/A")
+#define STREAM_DISCONTINUED_TEXT _T("STREAM DISCONTINUED")
+#define STREAM_CONTINUED_TEXT _T("STREAM CONTINUED")
 
 
 // Constructor
@@ -135,6 +146,7 @@ CZebraCameraSDKSampleApplicationDlg::CZebraCameraSDKSampleApplicationDlg(CWnd* p
 	, m_check_snapshot_image_event_value_(FALSE)
 	, m_check_decode_image_event_value_(FALSE)
 	, m_check_continuous_image_event_value_(FALSE)
+	, m_check_error_event_value_(FALSE)
 	, m_edit_eventType_value_(_T(""))
 	, m_edit_size_value_(_T(""))
 	, m_edit_format_value_(_T(""))
@@ -158,6 +170,8 @@ CZebraCameraSDKSampleApplicationDlg::CZebraCameraSDKSampleApplicationDlg(CWnd* p
 	, m_edit_wb_blue_temp_value_(_T(""))
 	, m_edit_wb_red_temp_value_(_T(""))
 	, m_detect_bounding_box_(FALSE)
+	, m_edit_weight_data_value(_T(""))
+	, m_edit_camera_stream_value(_T(""))
 {
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 
@@ -168,6 +182,7 @@ CZebraCameraSDKSampleApplicationDlg::CZebraCameraSDKSampleApplicationDlg(CWnd* p
 	produce_image_event_handler_ = new ProduceImageEventHandler(this);
 	decode_image_event_handler_ = new DecodeImageEventHandler(this);
 	decode_session_status_change_event_handler_ = new DecodeSessionStatusChangeEventHandler(this);
+	camera_stream_status_change_event_handler_ = new CameraStreamStatusChangeEventHandler(this);
 	firmware_download_event_handler_ = new FirmwareDownloadEventHandler(this);
 
 	m_device_awake_bmp_.LoadBitmapW(IDB_DEVICE_AWAKE);
@@ -182,6 +197,7 @@ CZebraCameraSDKSampleApplicationDlg::~CZebraCameraSDKSampleApplicationDlg()
 	delete produce_image_event_handler_;
 	delete decode_image_event_handler_;
 	delete decode_session_status_change_event_handler_;
+	delete camera_stream_status_change_event_handler_;
 	delete firmware_download_event_handler_;
 	m_device_sleep_bmp_.DeleteObject();
 	m_device_awake_bmp_.DeleteObject();
@@ -307,12 +323,19 @@ void CZebraCameraSDKSampleApplicationDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_BUTTON_RETRIEVE_CONFIG, m_button_retrieve_config_);
 	DDX_Control(pDX, IDC_CHECK_DECODE_SESSION_STATUS_CHANGE_EVENT, m_check_decode_session_status_change_event_);
 	DDX_Check(pDX, IDC_CHECK_DECODE_SESSION_STATUS_CHANGE_EVENT, m_check_decode_session_status_change_event_value_);
+	DDX_Control(pDX, IDC_CHECK_ERROR_SESSION_STATUS_EVENT, m_check_error_event_);
+	DDX_Check(pDX, IDC_CHECK_ERROR_SESSION_STATUS_EVENT, m_check_error_event_value_);
 	DDX_Control(pDX, IDC_PICTURE_DEVICE_AWAKE_STATUS, m_device_awake_status_image_);
 
 	m_edit_log_.LineScroll(m_edit_log_.GetLineCount());
 	DDX_Check(pDX, IDC_CHECK_DETECT_BOUNDING_BOX, m_detect_bounding_box_);
 	DDX_Control(pDX, IDC_CHECK_DETECT_BOUNDING_BOX, m_check_detect_bounding_box_);
 	DDX_Control(pDX, IDC_BUTTON_SET_BACKGROUND, m_button_set_background_);
+	DDX_Control(pDX, IDC_EDIT_WEIGHT_DATA, m_edit_weight_data);
+	DDX_Text(pDX, IDC_EDIT_WEIGHT_DATA, m_edit_weight_data_value);
+
+	DDX_Control(pDX, IDC_EDIT_CAMERA_STREAM, m_edit_camera_stream);
+	DDX_Text(pDX, IDC_EDIT_CAMERA_STREAM, m_edit_camera_stream_value);
 }
 
 BEGIN_MESSAGE_MAP(CZebraCameraSDKSampleApplicationDlg, CDialogEx)
@@ -358,6 +381,7 @@ BEGIN_MESSAGE_MAP(CZebraCameraSDKSampleApplicationDlg, CDialogEx)
 	ON_BN_CLICKED(IDC_CHECK_DECODE_SESSION_STATUS_CHANGE_EVENT, &CZebraCameraSDKSampleApplicationDlg::OnBnClickedCheckDecodeSessionStatusChangeEvent)
 	ON_BN_CLICKED(IDC_CHECK_DETECT_BOUNDING_BOX, &CZebraCameraSDKSampleApplicationDlg::OnBnClickedCheckDetectBoundingBox)
 	ON_BN_CLICKED(IDC_BUTTON_SET_BACKGROUND, &CZebraCameraSDKSampleApplicationDlg::OnBnClickedButtonSetBackground)
+	ON_BN_CLICKED(IDC_CHECK_ERROR_SESSION_STATUS_EVENT, &CZebraCameraSDKSampleApplicationDlg::OnBnClickedCheckErrorSessionStatusEvent)
 END_MESSAGE_MAP()
 
 
@@ -1272,6 +1296,7 @@ void CZebraCameraSDKSampleApplicationDlg::ExecuteRebootProcedures()
 
 void CZebraCameraSDKSampleApplicationDlg::ChangeResolutionsCbEnableState()
 {
+
 	if (m_check_continuous_image_event_value_ == TRUE || m_check_decode_image_event_value_ == TRUE || m_check_snapshot_image_event_value_ == TRUE || m_check_picklist_image_value_ == TRUE)
 	{
 		m_combo_frame_types_->EnableWindow(FALSE);
@@ -1401,6 +1426,7 @@ void CZebraCameraSDKSampleApplicationDlg::ClearData()
 	m_check_snapshot_image_event_value_ = FALSE;
 	m_check_decode_image_event_value_ = FALSE;
 	m_check_decode_session_status_change_event_value_ = FALSE;
+	m_check_error_event_value_ = FALSE;
 	m_check_exposure_auto_value_ = FALSE;
 	// Image Event related information
 	m_edit_timestamp_value_ = "";
@@ -1482,6 +1508,7 @@ void CZebraCameraSDKSampleApplicationDlg::EnableDisableControls(BOOL enableFlag)
 	m_check_decode_image_event_.EnableWindow(enableFlag);
 	m_check_continuous_image_event_.EnableWindow(enableFlag);
 	m_check_decode_session_status_change_event_.EnableWindow(enableFlag);
+	m_check_error_event_.EnableWindow(enableFlag);
 
 	m_edit_eventType_.EnableWindow(enableFlag);
 	m_edit_size_.EnableWindow(enableFlag);
@@ -1787,6 +1814,37 @@ void CZebraCameraSDKSampleApplicationDlg::OnBnClickedCheckDecodeSessionStatusCha
 	UpdateDataEx();
 }
 
+void CZebraCameraSDKSampleApplicationDlg::OnBnClickedCheckErrorSessionStatusEvent()
+{
+	if (camera_ == NULL)
+	{
+		m_check_error_event_value_ = FALSE;
+		return;
+	}
+
+	if (m_check_error_event_.GetCheck()) {
+		// register for camera stream status change event
+		camera_->AddCameraStreamStatusChangeEventListener(*camera_stream_status_change_event_handler_);
+
+		EventLog("CameraStreamStatusEnabled()");
+		m_check_error_event_value_ = TRUE;
+	}
+	else {
+		// unregister for camera stream status change event
+		camera_->RemoveCameraStreamStatusChangeEventListener(*camera_stream_status_change_event_handler_);
+
+		EventLog("CameraStreamStatusDisabled()");
+		m_check_error_event_value_ = FALSE;
+	}
+
+	m_edit_camera_stream_value = L"";
+
+	ChangeResolutionsCbEnableState();
+
+	// update UI
+	UpdateDataEx();
+}
+
  // Snapshot Image received Event
 void SnapshotImageEventHandler::ImageReceived(ImageEventData ev, ImageEventMetaData evm)
 {
@@ -1798,7 +1856,12 @@ void SnapshotImageEventHandler::ImageReceived(ImageEventData ev, ImageEventMetaD
 void ProduceImageEventHandler::ImageReceived(ImageEventData ev, ImageEventMetaData evm)
 {
 	m_pDlg_->m_edit_eventType_value_ = STR_IMAGE_EVTENT_PRODUCE;
-	m_pDlg_->HandleImage(ev.image, ev.format);
+
+	std::stringstream weight_ss;
+	double weight_val = (double)evm.weight_data / 1000;
+	std::to_string(weight_val);
+	weight_ss << weight_val << " " << (evm.weight_unit == WEIGHT_UNIT_KG_DECIMAL ? WEIGHT_UNIT_KG_TEXT : evm.weight_unit == WEIGHT_UNIT_POUNDS_DECIMAL ? WEIGHT_UNIT_POUNDS_TEXT : evm.weight_unit == WEIGHT_UNIT_OTHER_DECIMAL ? WEIGHT_UNIT_OTHER_TEXT : WEIGHT_UNIT_INVALID_TEXT); //Changing the int comparing of the logic to string comparing 
+	m_pDlg_->HandleImage(ev.image, ev.format, "", weight_ss.str());
 }
 
 
@@ -1814,13 +1877,19 @@ void DecodeImageEventHandler::ImageReceived(ImageEventData ev, ImageEventMetaDat
 void ContinuousImageEventHandler::ImageReceived(ImageEventData ev, ImageEventMetaData evm)
 {
 	m_pDlg_->m_edit_eventType_value_ = STR_IMAGE_EVTENT_CONTINUOUS;
-	m_pDlg_->HandleImage(ev.image, ev.format);
+	m_pDlg_->HandleImage(ev.image, ev.format, "", "");
 }
 
 // Decode session Status Changed Event
 void DecodeSessionStatusChangeEventHandler::DecodeSessionStatusChanged(DecodeSessionStatus status)
 {
 	m_pDlg_->SetDeviceAwakeStatusImage(status);
+}
+
+//Camera Issue Event
+void CameraStreamStatusChangeEventHandler::CameraStreamStatusChanged(CameraStreamStatus status) 
+{
+	m_pDlg_->UpdateCameraStreamStatusChanged(status);
 }
 
 
@@ -1972,7 +2041,7 @@ zebra::image::FileConverter CZebraCameraSDKSampleApplicationDlg::GetFileConverte
 }
 
 // Update the UI by showing the image received
-void CZebraCameraSDKSampleApplicationDlg::ShowImage(std::vector<uint8_t>& image ,std::string decode_data , uint32_t width , uint32_t height , size_t size)
+void CZebraCameraSDKSampleApplicationDlg::ShowImage(std::vector<uint8_t>& image ,std::string decode_data, std::string weight_data, uint32_t width , uint32_t height , size_t size)
 {
 	try
 	{
@@ -1993,6 +2062,8 @@ void CZebraCameraSDKSampleApplicationDlg::ShowImage(std::vector<uint8_t>& image 
 		m_edit_image_resolution_value_.Format(_T("%d x %d"), width, height);
 		CString cs(decode_data.c_str());
 		m_edit_decode_data_value_.Format(_T("%s"), cs);
+
+		m_edit_weight_data_value.Format(_T("%s"), CString(weight_data.c_str()));
 
 		if (m_check_decode_image_event_value_ == TRUE || m_check_snapshot_image_event_value_ == TRUE || m_check_picklist_image_value_ == TRUE)
 		{
@@ -2072,8 +2143,27 @@ void CZebraCameraSDKSampleApplicationDlg::SetDeviceAwakeStatusImage(DecodeSessio
 	}
 }
 
+// Handle Camera Issue Event
+void CZebraCameraSDKSampleApplicationDlg::UpdateCameraStreamStatusChanged(CameraStreamStatus status)
+{
+	switch (status)
+	{
+	case CameraStreamStatus::STREAM_DISCONTINUED:
+		m_edit_camera_stream_value = STREAM_DISCONTINUED_TEXT;
+		break;
+	case CameraStreamStatus::STREAM_CONTINUED:
+		m_edit_camera_stream_value = STREAM_CONTINUED_TEXT;
+		break;
+	default:
+		break;
+	}
+
+	// update UI
+	UpdateDataEx();
+}
+
 //Handle image-show and save
-void CZebraCameraSDKSampleApplicationDlg::HandleImage(ImageData& evdat, ImageFormat& format, std::string decode_data) 
+void CZebraCameraSDKSampleApplicationDlg::HandleImage(ImageData& evdat, ImageFormat& format, std::string decode_data ,std::string weight)
 {
 	converter_type_ = GetFileConverter(format);
 	std::vector<uint8_t> image = zebra::image::Encode(converter_type_, evdat);
@@ -2091,7 +2181,7 @@ void CZebraCameraSDKSampleApplicationDlg::HandleImage(ImageData& evdat, ImageFor
 			temp_decode_data.append(1,*it);
 		}
 	}
-	ShowImage(image, temp_decode_data , evdat.width , evdat.height , evdat.size);
+	ShowImage(image, temp_decode_data , weight, evdat.width , evdat.height , evdat.size);
 	if (m_check_autosaveimage_value_ || m_button_saveButtonPressed_)
 	{
 		CString csFileName = GetFileName(temp_decode_data);
@@ -2276,6 +2366,15 @@ void CZebraCameraSDKSampleApplicationDlg::OnCbnSelchangeComboFrametypes()
 		camera_->SetCurrentFrameType(*frame_type);
 		EventLog("OnCbnSelchangeComboFrametypes():", selected_frame_type_item);
 		m_RenderEngine_.ClearImage();
+
+		//clear detect background reference image
+		m_RenderEngine_.SaveBackground();
+		if (CheckDetectBoundingBoxEnableState())
+		{
+			
+			AfxGetMainWnd()->MessageBox(STR_WARNING_MSG_RES_CHANGE, (LPCTSTR)STR_WARNING);
+		}
+		
 	}
 	catch (const std::exception& e)
 	{
@@ -2721,6 +2820,19 @@ void CZebraCameraSDKSampleApplicationDlg::OnBnClickedButtonRetrieveConfig()
 	}
 }
 
+BOOL CZebraCameraSDKSampleApplicationDlg::CheckDetectBoundingBoxEnableState()
+{
+	if (m_check_detect_bounding_box_.GetCheck())
+	{
+		m_check_detect_bounding_box_state_ = TRUE;
+	}
+	else
+	{
+		m_check_detect_bounding_box_state_ = FALSE;
+	}
+
+	return m_check_detect_bounding_box_state_;
+}
 
 void CZebraCameraSDKSampleApplicationDlg::OnBnClickedCheckDetectBoundingBox()
 {

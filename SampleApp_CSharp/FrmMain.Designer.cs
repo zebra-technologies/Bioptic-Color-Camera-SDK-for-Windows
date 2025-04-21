@@ -60,6 +60,8 @@
             this.txtModelNumber = new System.Windows.Forms.TextBox();
             this.label3 = new System.Windows.Forms.Label();
             this.groupBox5 = new System.Windows.Forms.GroupBox();
+            this.label34 = new System.Windows.Forms.Label();
+            this.txtWeightData = new System.Windows.Forms.TextBox();
             this.pictureBoxDeviceAwake = new System.Windows.Forms.PictureBox();
             this.label33 = new System.Windows.Forms.Label();
             this.label29 = new System.Windows.Forms.Label();
@@ -75,6 +77,7 @@
             this.label26 = new System.Windows.Forms.Label();
             this.label25 = new System.Windows.Forms.Label();
             this.groupBox6 = new System.Windows.Forms.GroupBox();
+            this.chkCameraStreamStatusEvent = new System.Windows.Forms.CheckBox();
             this.chkDetectBoundingBox = new System.Windows.Forms.CheckBox();
             this.btnSetBackground = new System.Windows.Forms.Button();
             this.chkDecodeSessionStatusEvent = new System.Windows.Forms.CheckBox();
@@ -152,6 +155,8 @@
             this.btnBrowsImageSaveLocation = new System.Windows.Forms.Button();
             this.txtImageSaveLocation = new System.Windows.Forms.TextBox();
             this.groupBox2 = new System.Windows.Forms.GroupBox();
+            this.txtCameraStream = new System.Windows.Forms.TextBox();
+            this.label35 = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.picImage)).BeginInit();
             this.groupBox1.SuspendLayout();
             this.groupBox5.SuspendLayout();
@@ -370,7 +375,7 @@
             this.btnSnapshot.Name = "btnSnapshot";
             this.btnSnapshot.Size = new System.Drawing.Size(90, 26);
             this.btnSnapshot.TabIndex = 13;
-            this.btnSnapshot.Text = "Snapshot";
+            this.btnSnapshot.Text = "Capture";
             this.btnSnapshot.UseVisualStyleBackColor = true;
             this.btnSnapshot.Click += new System.EventHandler(this.btnSnapshot_Click);
             // 
@@ -508,6 +513,10 @@
             // 
             // groupBox5
             // 
+            this.groupBox5.Controls.Add(this.label35);
+            this.groupBox5.Controls.Add(this.txtCameraStream);
+            this.groupBox5.Controls.Add(this.label34);
+            this.groupBox5.Controls.Add(this.txtWeightData);
             this.groupBox5.Controls.Add(this.pictureBoxDeviceAwake);
             this.groupBox5.Controls.Add(this.label33);
             this.groupBox5.Controls.Add(this.label29);
@@ -532,10 +541,28 @@
             this.groupBox5.TabStop = false;
             this.groupBox5.Text = "Event Viewer";
             // 
+            // label34
+            // 
+            this.label34.AutoSize = true;
+            this.label34.Location = new System.Drawing.Point(446, 203);
+            this.label34.Name = "label34";
+            this.label34.Size = new System.Drawing.Size(67, 13);
+            this.label34.TabIndex = 41;
+            this.label34.Text = "Weight Data";
+            // 
+            // txtWeightData
+            // 
+            this.txtWeightData.BackColor = System.Drawing.SystemColors.ButtonFace;
+            this.txtWeightData.Enabled = false;
+            this.txtWeightData.Location = new System.Drawing.Point(548, 200);
+            this.txtWeightData.Name = "txtWeightData";
+            this.txtWeightData.Size = new System.Drawing.Size(130, 20);
+            this.txtWeightData.TabIndex = 40;
+            // 
             // pictureBoxDeviceAwake
             // 
             this.pictureBoxDeviceAwake.BackColor = System.Drawing.SystemColors.ControlLight;
-            this.pictureBoxDeviceAwake.Location = new System.Drawing.Point(552, 204);
+            this.pictureBoxDeviceAwake.Location = new System.Drawing.Point(548, 264);
             this.pictureBoxDeviceAwake.Name = "pictureBoxDeviceAwake";
             this.pictureBoxDeviceAwake.Size = new System.Drawing.Size(22, 22);
             this.pictureBoxDeviceAwake.SizeMode = System.Windows.Forms.PictureBoxSizeMode.AutoSize;
@@ -545,7 +572,7 @@
             // label33
             // 
             this.label33.AutoSize = true;
-            this.label33.Location = new System.Drawing.Point(446, 204);
+            this.label33.Location = new System.Drawing.Point(446, 268);
             this.label33.Name = "label33";
             this.label33.Size = new System.Drawing.Size(77, 13);
             this.label33.TabIndex = 38;
@@ -564,9 +591,9 @@
             // 
             this.txtDecodeData.BackColor = System.Drawing.SystemColors.ButtonFace;
             this.txtDecodeData.Enabled = false;
-            this.txtDecodeData.Location = new System.Drawing.Point(546, 172);
+            this.txtDecodeData.Location = new System.Drawing.Point(548, 172);
             this.txtDecodeData.Name = "txtDecodeData";
-            this.txtDecodeData.Size = new System.Drawing.Size(134, 20);
+            this.txtDecodeData.Size = new System.Drawing.Size(130, 20);
             this.txtDecodeData.TabIndex = 36;
             // 
             // txtImageRes
@@ -576,7 +603,7 @@
             this.txtImageRes.Location = new System.Drawing.Point(548, 141);
             this.txtImageRes.Margin = new System.Windows.Forms.Padding(2);
             this.txtImageRes.Name = "txtImageRes";
-            this.txtImageRes.Size = new System.Drawing.Size(132, 20);
+            this.txtImageRes.Size = new System.Drawing.Size(130, 20);
             this.txtImageRes.TabIndex = 35;
             // 
             // label22
@@ -666,6 +693,7 @@
             // 
             // groupBox6
             // 
+            this.groupBox6.Controls.Add(this.chkCameraStreamStatusEvent);
             this.groupBox6.Controls.Add(this.chkDetectBoundingBox);
             this.groupBox6.Controls.Add(this.btnSetBackground);
             this.groupBox6.Controls.Add(this.chkDecodeSessionStatusEvent);
@@ -740,10 +768,22 @@
             this.groupBox6.TabStop = false;
             this.groupBox6.Text = "Camera Configuration";
             // 
+            // chkCameraStreamStatusEvent
+            // 
+            this.chkCameraStreamStatusEvent.AutoSize = true;
+            this.chkCameraStreamStatusEvent.Location = new System.Drawing.Point(548, 331);
+            this.chkCameraStreamStatusEvent.Margin = new System.Windows.Forms.Padding(2);
+            this.chkCameraStreamStatusEvent.Name = "chkCameraStreamStatusEvent";
+            this.chkCameraStreamStatusEvent.Size = new System.Drawing.Size(126, 17);
+            this.chkCameraStreamStatusEvent.TabIndex = 87;
+            this.chkCameraStreamStatusEvent.Text = "Camera Status Event";
+            this.chkCameraStreamStatusEvent.UseVisualStyleBackColor = true;
+            this.chkCameraStreamStatusEvent.CheckedChanged += new System.EventHandler(this.checkBox1chkCameraStreamStatusEvent_CheckedChanged);
+            // 
             // chkDetectBoundingBox
             // 
             this.chkDetectBoundingBox.AutoSize = true;
-            this.chkDetectBoundingBox.Location = new System.Drawing.Point(548, 355);
+            this.chkDetectBoundingBox.Location = new System.Drawing.Point(548, 359);
             this.chkDetectBoundingBox.Margin = new System.Windows.Forms.Padding(2);
             this.chkDetectBoundingBox.Name = "chkDetectBoundingBox";
             this.chkDetectBoundingBox.Size = new System.Drawing.Size(127, 17);
@@ -1533,6 +1573,24 @@
             this.groupBox2.TabStop = false;
             this.groupBox2.Text = "Event Log";
             // 
+            // txtCameraStream
+            // 
+            this.txtCameraStream.BackColor = System.Drawing.SystemColors.ButtonFace;
+            this.txtCameraStream.Enabled = false;
+            this.txtCameraStream.Location = new System.Drawing.Point(548, 230);
+            this.txtCameraStream.Name = "txtCameraStream";
+            this.txtCameraStream.Size = new System.Drawing.Size(130, 20);
+            this.txtCameraStream.TabIndex = 42;
+            // 
+            // label35
+            // 
+            this.label35.AutoSize = true;
+            this.label35.Location = new System.Drawing.Point(446, 234);
+            this.label35.Name = "label35";
+            this.label35.Size = new System.Drawing.Size(79, 13);
+            this.label35.TabIndex = 43;
+            this.label35.Text = "Camera Stream";
+            // 
             // FrmMain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -1702,6 +1760,11 @@
         private System.Windows.Forms.PictureBox pictureBoxDeviceAwake;
         private System.Windows.Forms.CheckBox chkDetectBoundingBox;
         private System.Windows.Forms.Button btnSetBackground;
+        private System.Windows.Forms.Label label34;
+        private System.Windows.Forms.TextBox txtWeightData;
+        private System.Windows.Forms.CheckBox chkCameraStreamStatusEvent;
+        private System.Windows.Forms.Label label35;
+        private System.Windows.Forms.TextBox txtCameraStream;
     }
 }
 

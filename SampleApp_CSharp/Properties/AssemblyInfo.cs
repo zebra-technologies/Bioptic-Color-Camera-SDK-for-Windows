@@ -10,7 +10,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Zebra Technologies")]
 [assembly: AssemblyProduct("Bioptic Color Camera Sample Application")]
-[assembly: AssemblyCopyright("©2020 Zebra Technologies Corp. and/or its affiliates.  All rights reserved.")]
+[assembly: AssemblyCopyright("©2025 Zebra Technologies Corp. and/or its affiliates.  All rights reserved.")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -32,5 +32,5 @@ using System.Runtime.InteropServices;
 // You can specify all the values or you can default the Build and Revision Numbers
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("1.0.13.0")]
-[assembly: AssemblyFileVersion("1.0.13.0")]
+[assembly: AssemblyVersion("1.0.20.0")]
+[assembly: AssemblyFileVersion("1.0.20.0")]

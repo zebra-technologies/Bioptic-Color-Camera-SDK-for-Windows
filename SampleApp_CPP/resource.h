@@ -125,7 +125,14 @@
 #define IDC_CHECK_DETECT_BOUNDING_BOX   1072
 #define IDC_EDIT_EVENT_LOG              1073
 #define IDC_SCROLLBAR1                  1074
+#define IDC_EDIT_DECODE_DATA2           1074
+#define IDC_EDIT_WEIGHT_DATA            1074
+#define IDC_CHECK_DECODE_SESSION_STATUS_CHANGE_EVENT2 1075
+#define IDC_CHECK_ERROR_SESSION_STATUS_EVENT 1075
 #define IDC_EDIT2                       1076
+#define IDC_EDIT_WEIGHT_DATA2           1076
+#define IDC_EDIT_CAMERA_STREAM          1076
+#define IDC_EDIT_CAMERA_STREA0M         1076
 #define IDC_BUTTON_REBBOTCHECK          1078
 #define IDC_BUTTON4                     1079
 #define IDC_BUTTON_RETRIEVE_CONFIG      1079

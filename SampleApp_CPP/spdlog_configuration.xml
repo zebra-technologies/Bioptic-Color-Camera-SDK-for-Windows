@@ -10,7 +10,7 @@
       <!-- Max file size in Kilo Bytes (considering 1KB = 1024B). Minimum size is 5KB and if any value less is defined, will be defaulted to the minimum value. -->
       <property key="max_file_size" value="5120" />
       <!-- Max file count. The minimum is 1 and anything less or invalid value will be defaulted to 1. -->
-      <property key="max_file_count" value="%" />
+      <property key="max_file_count" value="5" />
       <!-- Pattern of the single log entry. Please refer https://github.com/gabime/spdlog/wiki/3.-Custom-formatting for more information. -->
       <property key="log_pattern" value="[%H:%M:%S:%e] [T%t] [P%P] [%l] [%s] [%#] [%!] %v" />
       <!-- Log level to be recorded.  2 = INFO, 3 = WARNING, 4 = ERROR, 5 = CRITICAL 6 = LOG_OFF, 0,1 = TRACE,DEBUG (Works only with debug build) -->
